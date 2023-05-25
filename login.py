@@ -15,7 +15,7 @@ import socket
 
 class Login:
     def __init__(self):
-        # 
+        #
         qfile = QFile("data/ui/login.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
