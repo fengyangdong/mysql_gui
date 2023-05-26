@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4 as uid
 import socket
 
-
+import sqls
 class Login:
     def __init__(self):
         #
@@ -23,8 +23,10 @@ class Login:
 
 
         with open(r"data\user.json", "r") as fp:
-            self.data = json.load(fp)
-            data = self.data
+            self.data_user = json.load(fp)
+            data = self.data_user
+        with open(r"data\mysql.json", "r") as fp:
+            self.data_mysql = json.load(fp)
         print(type(data["username"]))
         self.ui.user_name.setText(data["username"])
         self.ui.user_password.setText(data["password"])
@@ -40,27 +42,35 @@ class Login:
         self.ui.user_in.clicked.connect(self.fun_in)
         self.ui.user_database_button.clicked.connect(self.fun_database)
     def fun_in(self):
+        # 更新mysql.json的信息
+        self.data_mysql["database"] = self.ui.user_database.text()
+        with open(r"data\mysql.json", "w") as fp:
+            json.dump(self.data_mysql, fp, ensure_ascii=False)
         # 判断是否正确
-
+        print(self.ui.user_name.test())
+        print(self.ui.user_password.text())
+        sqls.in_determine(self.data_mysql, self.ui.user_name.test(), self.ui.user_password.text())
 
 
         # 更新user.json的信息
         # 修改用户名和数据库
-        self.data["username"] = self.ui.user_name.text()
-        self.data["database"] = self.ui.user_database.text()
+        self.data_user["username"] = self.ui.user_name.text()
+        self.data_user["database"] = self.ui.user_database.text()
+
         with open(r"data\user.json", "w") as fp:
-            json.dump(self.data, fp, ensure_ascii=False)
+            json.dump(self.data_user, fp, ensure_ascii=False)
         # 修改密码部分
         if self.ui.user_radio.isChecked() == True:
-            if self.data["password"] == "":
-                self.data["password"] = self.ui.user_password.text()
+            if self.data_user["password"] == "":
+                self.data_user["password"] = self.ui.user_password.text()
                 with open(r"data\user.json", "w") as fp:
-                    json.dump(self.data, fp, ensure_ascii=False)
+                    json.dump(self.data_user, fp, ensure_ascii=False)
         else:
-            if self.data["password"] != "":
-                self.data["password"] = ""
+            if self.data_user["password"] != "":
+                self.data_user["password"] = ""
                 with open(r"data\user.json", "w") as fp:
-                    json.dump(self.data, fp, ensure_ascii=False)
+                    json.dump(self.data_user, fp, ensure_ascii=False)
+
 
     def fun_database(self):
         if self.ui.user_database.text() in ("information_schema", "mysql", "performance__schema", "sys"):
@@ -69,8 +79,8 @@ class Login:
             if self.temp_database ==  True:
                 print("初始化")
                 self.ui.user_word.setText("开始初始化")
-                import sqls
-                sqls.InitializeDatabase(self.ui.user_database.text())
+                # print(self.data_mysql)
+                sqls.InitializeDatabase(self.data_mysql, self.ui.user_database.text())
                 self.ui.user_word.setText("初始化完成")
             else:
                 self.ui.user_word.setText("初始化数据库会删除之前数据库然后重建\n继续请在此点击")

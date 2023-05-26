@@ -1,9 +1,11 @@
 import pymysql
+import json
 
-
-def InitializeDatabase(mydatabase):
-    db = pymysql.connect(host='localhost',user = 'root',password = '123456',database = "mysql")
+def InitializeDatabase(mysql_word, mydatabase):
+    # 连接mysql
+    db = pymysql.connect(host=mysql_word["hostname"],user = mysql_word["username"],password =mysql_word["password"],database = "mysql")
     cursor = db.cursor()
+    # 开始初始化操作
     sql = f"drop database if exists {mydatabase}"
     cursor.execute(sql)
     sql = f"create database {mydatabase}"
@@ -42,3 +44,19 @@ def InitializeDatabase(mydatabase):
     """
     cursor.execute(sql)
     db.close()
+
+
+def in_determine(mysql_word, username, passwrod):
+    print(1)
+    # 连接mysql
+
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""
+    select * from user where name = {username}
+    """
+    cursor.execute(sql)
+    name = cursor.fetchall()
+    if name == "":
+        print("没有")
+    return 1
