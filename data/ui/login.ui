@@ -93,7 +93,7 @@
       <item>
        <widget class="QPushButton" name="user_logon">
         <property name="text">
-         <string>注册</string>
+         <string>学生注册</string>
         </property>
        </widget>
       </item>

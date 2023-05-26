@@ -1,6 +1,7 @@
 import pymysql
 import json
 
+
 def InitializeDatabase(mysql_word, mydatabase):
     # 连接mysql
     db = pymysql.connect(host=mysql_word["hostname"],user = mysql_word["username"],password =mysql_word["password"],database = "mysql")
@@ -46,17 +47,29 @@ def InitializeDatabase(mysql_word, mydatabase):
     db.close()
 
 
-def in_determine(mysql_word, username, passwrod):
-    print(1)
+def in_determine(mysql_word):
     # 连接mysql
-
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""
-    select * from user where name = {username}
+    select * from user
     """
     cursor.execute(sql)
     name = cursor.fetchall()
-    if name == "":
-        print("没有")
-    return 1
+    print(name,type(name))
+    db.close()
+    return name
+
+
+def add_user(mysql_word,username,password,type):
+    print(mysql_word,username,password,type)
+    # 连接mysql
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+
+    sql = """
+        insert into user values(%s, %s, %d)
+        """ % (username, password, type)
+    cursor.execute(sql)
+    db.commit()
+    db.close()
