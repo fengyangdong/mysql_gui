@@ -52,6 +52,7 @@ def InitializeDatabase(mysql_word, mydatabase):
 
     sql=f"""
     create table {mydatabase}.teacher(
+    t_id char(5),
     t_name char(10) ,
     t_sex char(1) ,
     s_phone char(11),
@@ -64,6 +65,7 @@ def InitializeDatabase(mysql_word, mydatabase):
 
     sql=f"""
     create table {mydatabase}.sdept(
+    sdept_id varchar(10),
     `sdept_name` varchar(20),
     `sdept_username` varchar(10)
     );
@@ -79,15 +81,16 @@ def InitializeDatabase(mysql_word, mydatabase):
     """
     cursor.execute(sql)
     db.commit()
-    db.close()
-
-
-    db_1 = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database="mysql")
-    cursor = db_1.cursor()
-    sql=f"INSERT INTO {mydatabase}.user values ('fengyangdong', '123456', 101)"
+    sql=f"""INSERT INTO {mydatabase}.user values ('fengyangdong', '123456', 101);"""
     cursor.execute(sql)
-    db_1.commit()
-    db_1.close()
+    sql=f"""insert into {mydatabase}.sdept values (1001, "计算机院", "小王");"""
+    cursor.execute(sql)
+    sql=f"""insert into {mydatabase}.teacher(t_id,t_name) values (10001, "小红");"""
+    cursor.execute(sql)
+    sql=f"""insert into {mydatabase}.student(s_id,s_name) values (100001, "冯杨栋"); """
+    cursor.execute(sql)
+    db.commit()
+    db.close()
 def in_determine(mysql_word):
     # 连接mysql
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
