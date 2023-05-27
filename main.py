@@ -20,6 +20,26 @@ class Main:
             self.data = json.load(fp)
 
 
+
+class Student:
+    def __init__(self):
+        #
+        qfile = QFile("data/ui/student.ui")
+        qfile.open(QFile.ReadOnly)
+        qfile.close()
+        self.ui = QUiLoader().load(qfile)
+
+        self.ui.information_widget.hide()
+
+        self.slot()
+    def slot(self):
+        self.ui.student_information.clicked.connect(self.student_information)
+
+    def student_information(self):
+        self.ui.information_widget.show()
+        data = sqls.select_student(login_ui.data_mysql, login_ui.data_user)
+        self.ui.information_word.setText
+
 class Login:
     def __init__(self):
         #
@@ -89,7 +109,10 @@ class Login:
                         with open(r"data\user.json", "w") as fp:
                             json.dump(self.data_user, fp, ensure_ascii=False)
                     # 修改界面
-                    #TODO 修改界面
+                    self.ui.hide()
+                    if user[2] == 3:
+                        print("这是学生")
+                        student_ui.ui.show()
                     break
                 else:
                     print("密码错误")
@@ -143,12 +166,24 @@ class Register:
             if self.ui.user_name.text() == user[0]:
                 print("用户名不能重复")
                 self.ui.register_word.setText("用户名不能重复")
+
                 break
         else:
-            print("开始添加")
-            self.ui.register_word.setText("开始添加")
-            sqls.add_user(login_ui.data_mysql, self.ui.user_name.text(), self.ui.user_password.text(), 3)
-            self.ui.register_word.setText("开始添加-->添加完成")
+            user_id = sqls.select_student(login_ui.data_mysql, self.ui.user_id.text())
+            for id in user_id:
+                if id[0] == self.ui.user_id.text():
+                    print("开始添加")
+                    self.ui.register_word.setText("开始添加")
+                    sqls.add_user(login_ui.data_mysql, self.ui.user_name.text(), self.ui.user_password.text(), 3, id[0])
+                    self.ui.register_word.setText("开始添加-->添加完成")
+            print(user_id)
+            if int(user_id[0]) != 0:
+                print("开始添加")
+                self.ui.register_word.setText("开始添加")
+                sqls.add_user(login_ui.data_mysql, self.ui.user_name.text(), self.ui.user_password.text(), 3)
+                self.ui.register_word.setText("开始添加-->添加完成")
+            else:
+                self.ui.register_word.setText("没有")
 
 
 
@@ -159,6 +194,7 @@ app = QApplication(sys.argv)
 login_ui = Login()
 
 register_ui = Register()
+student_ui = Student()
 login_ui.ui.show()
 sys.exit(app.exec_())
 
