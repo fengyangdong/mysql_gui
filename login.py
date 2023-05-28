@@ -56,7 +56,7 @@ class Login:
         with open(r"data\mysql.json", "w") as fp:
             json.dump(self.data_mysql, fp, ensure_ascii=False)
         # 获取指定库的user表（导出的是元祖）
-        user_data = sqls.in_determine(self.data_mysql)
+        user_data = sqls.select_user(self.data_mysql)
         # 遍历user表数据，挨个挨个判断
         for user in user_data:
             if self.ui.user_name.text() == user[0]:
