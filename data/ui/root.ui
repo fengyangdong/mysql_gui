@@ -26,13 +26,100 @@
     <string>TextLabel</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="select_add_delete_sdept">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>80</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>学院管理</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_word">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>520</y>
+     <width>841</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="select_add_delete_user">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>130</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>用户管理</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="select_user" native="true">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>70</y>
+     <width>871</width>
+     <height>411</height>
+    </rect>
+   </property>
+   <widget class="QTableWidget" name="user_table">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>861</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string>全选</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>用户名</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>密码</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>121</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>所有用户信息</string>
+    </property>
+   </widget>
+  </widget>
   <widget class="QWidget" name="select_sdept" native="true">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>50</y>
+     <x>100</x>
+     <y>60</y>
      <width>871</width>
-     <height>461</height>
+     <height>421</height>
     </rect>
    </property>
    <widget class="QTableWidget" name="sdept_table">
@@ -77,8 +164,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>0</y>
+      <x>20</x>
+      <y>10</y>
       <width>321</width>
       <height>41</height>
      </rect>
@@ -103,8 +190,8 @@
    <widget class="QWidget" name="add_sdept" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>310</y>
+      <x>20</x>
+      <y>300</y>
       <width>551</width>
       <height>131</height>
      </rect>
@@ -122,7 +209,7 @@
       <string>确认添加</string>
      </property>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>18</x>
@@ -193,8 +280,8 @@
    <widget class="QWidget" name="delete_sdept" native="true">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>270</y>
+      <x>30</x>
+      <y>310</y>
       <width>541</width>
       <height>41</height>
      </rect>
@@ -226,39 +313,33 @@
      </property>
     </widget>
    </widget>
+   <widget class="QPushButton" name="add_user_button">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>270</y>
+      <width>121</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>添加user账户</string>
+    </property>
+   </widget>
    <zorder>add_sdept</zorder>
    <zorder>sdept_table</zorder>
    <zorder>label</zorder>
    <zorder>add_sdept_button</zorder>
    <zorder>delete_sdept_button</zorder>
    <zorder>delete_sdept</zorder>
+   <zorder>add_user_button</zorder>
   </widget>
-  <widget class="QPushButton" name="select_add_delete_sdept">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>80</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>学院管理</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_word">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>520</y>
-     <width>841</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
+  <zorder>root_title</zorder>
+  <zorder>select_add_delete_sdept</zorder>
+  <zorder>label_word</zorder>
+  <zorder>select_add_delete_user</zorder>
+  <zorder>select_sdept</zorder>
+  <zorder>select_user</zorder>
  </widget>
  <resources/>
  <connections/>

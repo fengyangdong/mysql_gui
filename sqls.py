@@ -102,7 +102,6 @@ def select_user(mysql_word):
     """
     cursor.execute(sql)
     name = cursor.fetchall()
-    print(name,type(name))
     db.close()
     return name
 

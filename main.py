@@ -212,11 +212,17 @@ class Root:
         self.slot()
         # 初始化
         self.ui.root_title.setText(f"你是超级管理员，你的编号为{login_ui.data_user['username']}")
-        header = CheckBoxHeader()
-        self.ui.sdept_table.setHorizontalHeader(header)  # 设置头复选框
-        header.select_all_clicked.connect(header.change_state)  # 行表头复选框单击信号与槽
+        header1 = CheckBoxHeader()
+        self.ui.sdept_table.setHorizontalHeader(header1)  # 设置头复选框
+        header1.select_all_clicked.connect(header1.change_state)  # 行表头复选框单击信号与槽
         self.ui.sdept_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
         self.ui.sdept_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        header2 = CheckBoxHeader()
+        self.ui.user_table.setHorizontalHeader(header2)
+        header2.select_all_clicked.connect(header2.change_state)  # 行表头复选框单击信号与槽
+        self.ui.user_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.user_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # 空白处理
         self.hide()
 
@@ -225,13 +231,15 @@ class Root:
         self.ui.select_sdept.hide()
         self.ui.add_sdept.hide()
         self.ui.delete_sdept.hide()
+        self.ui.select_user.hide()
     def slot(self):
         self.ui.select_add_delete_sdept.clicked.connect(self.select_add_delete_sdept)
         self.ui.add_sdept_button.clicked.connect(self.add_sdept)
         self.ui.add_sdept_button2.clicked.connect(self.add_sdept2)
         self.ui.delete_sdept_button.clicked.connect(self.delete_sdept)
         self.ui.delete_sdept_button2.clicked.connect(self.delete_sdept2)
-
+        self.ui.add_user_button.clicked.connect(self.add_user)
+        self.ui.select_add_delete_user.clicked.connect(self.select_add_delete_user)
 
     def select_add_delete_sdept(self):
         self.hide()
@@ -275,6 +283,36 @@ class Root:
             sqls.delete_sdept(login_ui.data_mysql,id)
         # 删除完，把表进行更新，这个就是
         self.select_add_delete_sdept()
+
+    def add_user(self):
+        # 查询数据
+        user_list = []
+        sdept_list = []
+        user_id = sqls.select_user(login_ui.data_mysql)
+        for i in user_id:
+            user_list.append(i[0])
+        sdept_id = sqls.select_sdept(login_ui.data_mysql)
+        for i in sdept_id:
+            sdept_list.append(i[0])
+        # 选择没有创建user的sdept
+        print(user_list,sdept_list)
+        for sdept in sdept_list:
+            if sdept not in user_list:
+                sqls.add_user(login_ui.data_mysql,sdept,123456)
+        self.ui.label_word.setText("用户添加完成，默认账号为id，默认密码为123456")
+
+    def select_add_delete_user(self):
+        self.hide()
+        self.ui.select_user.show()
+        user_tuple = sqls.select_user(login_ui.data_mysql)
+        self.ui.user_table.setRowCount(len(user_tuple))
+        print(user_tuple)
+        for row in range(0, len(user_tuple)):
+            for column in range(0, len(user_tuple[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.user_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.user_table.setItem(row, column + 1, QTableWidgetItem(f"{user_tuple[row][column]}"))
 
 
 class CheckBoxHeader(QHeaderView):
