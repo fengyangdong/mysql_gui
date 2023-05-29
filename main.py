@@ -32,17 +32,47 @@ class Student:
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)
-
-        self.ui.information_widget.hide()
+        self.ui.label_title.setText(f"你好学生，您的编号是{login_ui.data_user['username']}")
 
         self.slot()
+        self.hide()
     def slot(self):
         self.ui.student_information.clicked.connect(self.student_information)
+        self.ui.change_information_button.clicked.connect(self.change_information)
+        self.ui.change_button2.clicked.connect(self.change_information2)
+
+    def hide(self):
+        self.ui.information_widget.hide()
+        self.ui.change_information.hide()
 
     def student_information(self):
         self.ui.information_widget.show()
-        data = sqls.select_student(login_ui.data_mysql, login_ui.data_user)
-        self.ui.information_word.setText
+        data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user)
+        student_data = f"""
+        您的学号是：{data[0][0]}\n
+        您的名称是：{data[0][1]}\n
+        您的性别：{data[0][2]}\n
+        您的电话：{data[0][3]}\n
+        您的邮箱：{data[0][4]}\n
+        您的家庭住址：{data[0][5]}\n
+        您的寝室号：{data[0][6]}\n
+        所在院：{data[0][7]}\n
+        所在班：{data[0][8]}\n
+        """
+        self.ui.information_word.setText(student_data)
+
+    def change_information(self):
+        self.ui.change_information.show()
+        data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user)
+        self.ui.change_user.setText(data[0][1])
+        self.ui.change_sex.setText(data[0][2])
+        self.ui.change_phone.setText(data[0][3])
+        self.ui.change_email.setText(data[0][4])
+        self.ui.change_home.setText(data[0][5])
+
+    def change_information2(self):
+        pass
+
 
 class Login:
     def __init__(self):

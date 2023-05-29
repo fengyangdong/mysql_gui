@@ -126,18 +126,20 @@ def add_user(mysql_word,username,password):
     db.close()
 
 
-def select_student(mysql_word, student):
+def select_one_student(mysql_word, student):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""
-        select * from student where s_id = {student}
+        select * from student where s_id = {student["username"]}
     """
-    data = cursor.execute(sql)
+    cursor.execute(sql)
     data = cursor.fetchall()
-    db.commit()
     db.close()
     return data
 
+
+def change_student():
+    pass
 
 def select_sdept(mysql_word):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
