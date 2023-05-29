@@ -32,7 +32,7 @@ class Student:
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)
-        self.ui.label_title.setText(f"你好学生，您的编号是{login_ui.data_user['username']}")
+        #self.ui.label_title.setText(f"你好学生，您的编号是{login_ui.data_user['username']}")
 
         self.slot()
         self.hide()
@@ -47,6 +47,7 @@ class Student:
 
     def student_information(self):
         self.ui.information_widget.show()
+        # data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user['username'])
         data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user)
         student_data = f"""
         您的学号是：{data[0][0]}\n
@@ -71,7 +72,13 @@ class Student:
         self.ui.change_home.setText(data[0][5])
 
     def change_information2(self):
-        pass
+        print("开始")
+        sqls.change_student(login_ui.data_mysql, login_ui.data_user,self.ui.change_user.text(),\
+                        self.ui.change_sex.text(),self.ui.change_phone.text(),self.ui.change_email.text(),\
+                            self.ui.change_home.text())
+        print("结束")
+        self.student_information()
+
 
 
 class Login:
@@ -149,6 +156,8 @@ class Login:
                     if len(user[0]) == 6:
                         print("这是学生")
                         student_ui.ui.show()
+                        student_ui.ui.label_title.setText(f"你好学生，您的编号是{login_ui.data_user['username']}")
+
                         break
                     elif len(user[0]) == 5:
                         print("这是老师")
@@ -219,7 +228,7 @@ class Register:
                     break
             # 如果for循环顺利退出，就说明没有用户名重复，就可以进行检查学号是否正确
             else:
-                user_id = sqls.select_student(login_ui.data_mysql, self.ui.user_name.text())
+                user_id = sqls.select_one_student(login_ui.data_mysql, self.ui.user_name.text())
                 if int(user_id[0][0]) != 0:
                     print("开始添加")
                     self.ui.register_word.setText("开始添加")

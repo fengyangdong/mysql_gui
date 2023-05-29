@@ -23,7 +23,7 @@ def InitializeDatabase(mysql_word, mydatabase):
     s_name char(10) ,
     s_sex char(1) ,
     s_phone char(11),
-    e_emile varchar(30),
+    s_emaile varchar(30),
     s_home varchar(20) ,
     s_dorm char(10),
     s_dept varchar(20),
@@ -129,17 +129,42 @@ def add_user(mysql_word,username,password):
 def select_one_student(mysql_word, student):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
-    sql = f"""
-        select * from student where s_id = {student["username"]}
-    """
+    # 如果是dict，说明传进来的是user.json
+    if isinstance(student,dict):
+        sql = f"""
+            select * from student where s_id = "{student["username"]}"
+        """
+    # 如果是str，说明就是id
+    else :
+        sql = f"""
+            select * from student where s_id = {student}
+        """
     cursor.execute(sql)
     data = cursor.fetchall()
     db.close()
     return data
 
 
-def change_student():
-    pass
+def change_student(mysql_word, user_word,user,sex,phone,email,home):
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""update student set s_id = '{user_word['username']}'"""
+
+    if user != "":
+        sql += f""" ,s_name = '{user}' """
+    if sex != "":
+        sql += f""" ,s_sex = '{sex}' """
+    if phone != "":
+        sql += f""", s_phone = '{phone}' """
+    if email != "":
+        sql += f""" ,s_emaile = '{email}' """
+    if home != "":
+        sql += f""" ,s_home = '{home}' """
+    sql += f"""where s_id = '{user_word['username']}'"""
+    print(sql)
+    cursor.execute(sql)
+    db.commit()
+    db.close()
 
 def select_sdept(mysql_word):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
