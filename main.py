@@ -48,7 +48,7 @@ class Student:
     def student_information(self):
         self.ui.information_widget.show()
         # data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user['username'])
-        data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user)
+        data = sqls.select_one_student(mysql_word=login_ui.data_mysql, id=login_ui.data_user['username'])
         student_data = f"""
         您的学号是：{data[0][0]}\n
         您的名称是：{data[0][1]}\n
@@ -64,7 +64,7 @@ class Student:
 
     def change_information(self):
         self.ui.change_information.show()
-        data = sqls.select_one_student(login_ui.data_mysql, login_ui.data_user)
+        data = sqls.select_one_student(mysql_word=login_ui.data_mysql,id=login_ui.data_user['username'])
         self.ui.change_user.setText(data[0][1])
         self.ui.change_sex.setText(data[0][2])
         self.ui.change_phone.setText(data[0][3])
@@ -163,6 +163,8 @@ class Login:
                         print("这是老师")
                         break
                     elif len(user[0]) == 4:
+                        sdept_ui.ui.show()
+                        sdept_ui.ui.label_title.setText(f"你好院长，您的编号是{login_ui.data_user['username']}")
                         print("这是院长")
                         break
                     else:
@@ -228,7 +230,7 @@ class Register:
                     break
             # 如果for循环顺利退出，就说明没有用户名重复，就可以进行检查学号是否正确
             else:
-                user_id = sqls.select_one_student(login_ui.data_mysql, self.ui.user_name.text())
+                user_id = sqls.select_one_student(mysql_word=login_ui.data_mysql, id=self.ui.user_name.text())
                 if int(user_id[0][0]) != 0:
                     print("开始添加")
                     self.ui.register_word.setText("开始添加")
@@ -283,7 +285,7 @@ class Root:
     def select_add_delete_sdept(self):
         self.hide()
         self.ui.select_sdept.show()
-        sdept_tuple = sqls.select_sdept(login_ui.data_mysql)
+        sdept_tuple = sqls.select_sdept(mysql_word=login_ui.data_mysql)
         self.ui.sdept_table.setRowCount(len(sdept_tuple))
         for row in range(0,len(sdept_tuple)):
             for column in range(0,len(sdept_tuple[0])):
@@ -330,7 +332,7 @@ class Root:
         user_id = sqls.select_user(login_ui.data_mysql)
         for i in user_id:
             user_list.append(i[0])
-        sdept_id = sqls.select_sdept(login_ui.data_mysql)
+        sdept_id = sqls.select_sdept(mysql_word=login_ui.data_mysql)
         for i in sdept_id:
             sdept_list.append(i[0])
         # 选择没有创建user的sdept
@@ -354,6 +356,56 @@ class Root:
                 self.ui.user_table.setItem(row, column + 1, QTableWidgetItem(f"{user_tuple[row][column]}"))
 
 
+
+class Sdept:
+    def __init__(self):
+        #加载
+        qfile = QFile("data/ui/sdept.ui")
+        qfile.open(QFile.ReadOnly)
+        qfile.close()
+        self.ui = QUiLoader().load(qfile)
+
+        self.slot()
+        self.hide()
+
+        header1 = CheckBoxHeader()
+        self.ui.student_table.setHorizontalHeader(header1)
+        header1.select_all_clicked.connect(header1.change_state)  # 行表头复选框单击信号与槽
+        self.ui.student_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.student_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+    def hide(self):
+        self.ui.student.hide()
+
+    def slot(self):
+        self.ui.student_button.clicked.connect(self.select_student)
+        self.ui.student_button2.clicked.connect(self.select2_student)
+
+    def select_student(self):
+        self.ui.student.show()
+        # 查询现在这个院有什么班级
+        # 首先查询是在什么院
+        data = sqls.select_sdept(mysql_word=login_ui.data_mysql, id=login_ui.data_user["username"])
+        data = data[0][1]
+        print(data)
+        # 查询这个院有什么班，依次加到box中
+        data_class = sqls.select_class(mysql_word=login_ui.data_mysql, sdept_name=data)
+        for c in data_class:
+            self.ui.select_class_box.addItem(c[0])
+
+        # 我们需要添加信息在student表中
+        data = sqls.select_one_student(mysql_word=login_ui.data_mysql, sdept=data)
+        print(data)
+        self.ui.student_table.setRowCount(len(data))
+        for row in range(0, len(data)):
+            for column in range(0, len(data[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.student_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.student_table.setItem(row, column+1, QTableWidgetItem(f"{data[row][column]}"))
+
+    def select2_student(self):
+        print(self.ui.select_sdept_box.currentText())
 class CheckBoxHeader(QHeaderView):
     """自定义表头类"""
     # 自定义 复选框全选信号
@@ -419,7 +471,7 @@ class CheckBoxHeader(QHeaderView):
 app = QApplication(sys.argv)
 
 login_ui = Login()
-
+sdept_ui = Sdept()
 register_ui = Register()
 student_ui = Student()
 root_ui = Root()

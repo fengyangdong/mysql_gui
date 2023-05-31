@@ -23,7 +23,7 @@ def InitializeDatabase(mysql_word, mydatabase):
     s_name char(10) ,
     s_sex char(1) ,
     s_phone char(11),
-    s_emaile varchar(30),
+    s_email varchar(30),
     s_home varchar(20) ,
     s_dorm char(10),
     s_dept varchar(20),
@@ -88,7 +88,10 @@ def InitializeDatabase(mysql_word, mydatabase):
     cursor.execute(sql)
     sql=f"""insert into {mydatabase}.student(s_id,s_name) values (100001, "冯杨栋"); """
     cursor.execute(sql)
-
+    sql = f"""insert into {mydatabase}.user values (100001, 123); """
+    cursor.execute(sql)
+    sql = f"""insert into {mydatabase}.class values ("大数据2101", '计算机院'); """
+    cursor.execute(sql)
     db.commit()
     db.close()
 
@@ -126,19 +129,30 @@ def add_user(mysql_word,username,password):
     db.close()
 
 
-def select_one_student(mysql_word, student):
+def select_one_student(mysql_word, id="", sdept=""):
+    where = False
+    temp = False
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     # 如果是dict，说明传进来的是user.json
-    if isinstance(student,dict):
-        sql = f"""
-            select * from student where s_id = "{student["username"]}"
-        """
-    # 如果是str，说明就是id
-    else :
-        sql = f"""
-            select * from student where s_id = {student}
-        """
+    sql = f"""select * from student"""
+    if id != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  s_id = '{id}'"
+        temp = True
+    if sdept != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  s_dept = '{sdept}'"
+        temp = True
+    print(sql)
     cursor.execute(sql)
     data = cursor.fetchall()
     db.close()
@@ -157,7 +171,7 @@ def change_student(mysql_word, user_word,user,sex,phone,email,home):
     if phone != "":
         sql += f""", s_phone = '{phone}' """
     if email != "":
-        sql += f""" ,s_emaile = '{email}' """
+        sql += f""" ,s_email = '{email}' """
     if home != "":
         sql += f""" ,s_home = '{home}' """
     sql += f"""where s_id = '{user_word['username']}'"""
@@ -166,12 +180,22 @@ def change_student(mysql_word, user_word,user,sex,phone,email,home):
     db.commit()
     db.close()
 
-def select_sdept(mysql_word):
+def select_sdept(mysql_word, id):
+    where = False
+    temp = False
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql=f"""
-    select * from sdept
-    """
+    select * from sdept """
+    if id != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  sdept_id = '{id}'"
+        temp = True
+    print(sql)
     cursor.execute(sql)
     data = cursor.fetchall()
     db.close()
@@ -196,3 +220,24 @@ def delete_sdept(mysql_word, id):
     cursor.execute(sql)
     db.commit()
     db.close()
+
+
+def select_class(mysql_word, sdept_name):
+    where = False
+    temp = False
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""select * from class """
+    if sdept_name != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  sdept = '{sdept_name}'"
+        temp = True
+    print(sql)
+    cursor.execute(sql)
+    data = cursor.fetchall()
+    db.close()
+    return data

@@ -6,6 +6,7 @@ while True:
 
     sql = input("请输入")
     cursor.execute(sql)
+    db.commit()
     data = cursor.fetchall()
     print(data)
 db.close()
