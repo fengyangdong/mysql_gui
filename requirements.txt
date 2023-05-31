@@ -1,0 +1,10 @@
+cffi==1.15.1
+cryptography==40.0.2
+fuzzywuzzy==0.18.0
+pycparser==2.21
+PyMySQL==1.0.3
+PyQt5==5.15.9
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.12.1
+PySide2==5.15.2.1
+shiboken2==5.15.2.1
