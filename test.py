@@ -30,7 +30,7 @@ class qtableDelete():
 
     # 设置表格内容
     def settable(self):
-        #TODO 1
+
         header = CheckBoxHeader()
         self.ui.table.setHorizontalHeader(header)  # 设置头复选框
         header.select_all_clicked.connect(header.change_state)  # 行表头复选框单击信号与槽
@@ -40,7 +40,7 @@ class qtableDelete():
         self.ui.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 设置表头自适应
         # 设置表格内容和复选框
         for i in range(15):
-            #TODO 2
+
             checkbox = QCheckBox()
             all_header_checkbox.append(checkbox)
             # checkbox.setCheckState(Qt.Unchecked) #设置复选框为不选状态、Partially（半选）、Checked（全选）

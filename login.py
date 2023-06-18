@@ -82,7 +82,7 @@ class Login:
                             with open(r"data\user.json", "w") as fp:
                                 json.dump(self.data_user, fp, ensure_ascii=False)
                     # 修改界面
-                    #TODO 修改界面
+
                     break
                 else:
                     print("密码错误")

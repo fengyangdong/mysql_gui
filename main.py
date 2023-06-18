@@ -249,10 +249,14 @@ class Root:
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)
-
+        # slot处理
         self.slot()
+        # 空白处理
+        self.hide()
         # 初始化
+        # 初始化title
         self.ui.root_title.setText(f"你是超级管理员，你的编号为{login_ui.data_user['username']}")
+        # 初始化check操作
         header1 = CheckBoxHeader()
         self.ui.sdept_table.setHorizontalHeader(header1)  # 设置头复选框
         header1.select_all_clicked.connect(header1.change_state)  # 行表头复选框单击信号与槽
@@ -264,29 +268,54 @@ class Root:
         header2.select_all_clicked.connect(header2.change_state)  # 行表头复选框单击信号与槽
         self.ui.user_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
         self.ui.user_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # 空白处理
-        self.hide()
+
+        header3 = CheckBoxHeader()
+        self.ui.student_table.setHorizontalHeader(header3)
+        header3.select_all_clicked.connect(header3.change_state)  # 行表头复选框单击信号与槽
+        self.ui.student_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.student_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+
 
 
     def hide(self):
-        self.ui.select_sdept.hide()
+        self.ui.stackedWidget.hide()
+        # self.ui.select_sdept.hide()
         self.ui.add_sdept.hide()
         self.ui.delete_sdept.hide()
-        self.ui.select_user.hide()
+        # self.ui.select_user.hide()
+        self.ui.delete_user_widget.hide()
     def slot(self):
-        self.ui.select_add_delete_sdept.clicked.connect(self.select_add_delete_sdept)
+        # sdept
+        self.ui.all_sdept_button.clicked.connect(self.all_sdept)
         self.ui.add_sdept_button.clicked.connect(self.add_sdept)
         self.ui.add_sdept_button2.clicked.connect(self.add_sdept2)
         self.ui.delete_sdept_button.clicked.connect(self.delete_sdept)
         self.ui.delete_sdept_button2.clicked.connect(self.delete_sdept2)
-        self.ui.add_user_button.clicked.connect(self.add_user)
-        self.ui.select_add_delete_user.clicked.connect(self.select_add_delete_user)
+        self.ui.add_user_button.clicked.connect(self.add_sdept_user)
 
-    def select_add_delete_sdept(self):
-        self.hide()
-        self.ui.select_sdept.show()
+
+        # user
+        self.ui.all_user_button.clicked.connect(self.all_user)
+        self.ui.delete_user.clicked.connect(self.delete_user)
+        self.ui.delete_user2.clicked.connect(self.delete_user2)
+
+        # student
+        self.ui.all_student_button.clicked.connect(self.all_student)
+    def all_sdept(self):
+        """
+        显示sdept的table，并且可以进行管理
+        """
+        # self.hide()
+        # self.ui.select_sdept.show()
+        # index0为学院管理
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(0)
+        # 查询出所有目前有的学院
         sdept_tuple = sqls.select_sdept(mysql_word=login_ui.data_mysql)
+        # 设置表格高度
         self.ui.sdept_table.setRowCount(len(sdept_tuple))
+        # 加数据
         for row in range(0,len(sdept_tuple)):
             for column in range(0,len(sdept_tuple[0])):
                 checkbox = QCheckBox()
@@ -296,16 +325,24 @@ class Root:
 
 
     def add_sdept(self):
+        # 添加操作和删除操作是一起的，所以必须只能显示一个
         self.ui.add_sdept.show()
         self.ui.delete_sdept.hide()
 
 
 
     def add_sdept2(self):
+        # TODO 待办 验证操作的完善
+        # 添加操作需要验证，第一个，id不能相同，名称不能相同，第二个，老师id必须存在，第三个，sdept长度必须为4
+
         # 判断操作
+        print(login_ui.data_mysql, self.ui.add_sdept_id.text(), self.ui.add_sdept_name.text(),
+              self.ui.add_sdept_username.text())
         sqls.add_sdept(login_ui.data_mysql, self.ui.add_sdept_id.text(), self.ui.add_sdept_name.text(),self.ui.add_sdept_username.text())
+
         self.ui.label_word.setText("添加完成")
-        self.select_add_delete_sdept()
+        # 更新table数据
+        self.all_sdept()
 
     def delete_sdept(self):
         # 添加操作的界面隐藏，把删除界面显示
@@ -313,6 +350,7 @@ class Root:
         self.ui.delete_sdept.show()
 
     def delete_sdept2(self):
+        # TODO 待办 删除的同时删除user里面的数据
         # 判断那些行选中
         delete_list = []
         for row in range(self.ui.sdept_table.rowCount()):
@@ -323,9 +361,9 @@ class Root:
 
             sqls.delete_sdept(login_ui.data_mysql,id)
         # 删除完，把表进行更新，这个就是
-        self.select_add_delete_sdept()
+        self.all_sdept()
 
-    def add_user(self):
+    def add_sdept_user(self):
         # 查询数据
         user_list = []
         sdept_list = []
@@ -342,9 +380,11 @@ class Root:
                 sqls.add_user(login_ui.data_mysql,sdept,123456)
         self.ui.label_word.setText("用户添加完成，默认账号为id，默认密码为123456")
 
-    def select_add_delete_user(self):
-        self.hide()
-        self.ui.select_user.show()
+    def all_user(self):
+        # self.hide()
+        # self.ui.select_user.show()
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(1)
         user_tuple = sqls.select_user(login_ui.data_mysql)
         self.ui.user_table.setRowCount(len(user_tuple))
         print(user_tuple)
@@ -354,6 +394,31 @@ class Root:
                 all_header_checkbox.append(checkbox)
                 self.ui.user_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
                 self.ui.user_table.setItem(row, column + 1, QTableWidgetItem(f"{user_tuple[row][column]}"))
+
+    def delete_user(self):
+        self.ui.delete_user_widget.show()
+
+    def delete_user2(self):
+
+        # 判断那些行选中
+        delete_list = []
+        for row in range(self.ui.user_table.rowCount()):
+            if self.ui.user_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                delete_list.append(self.ui.user_table.item(row,1).text())
+        for id in delete_list:
+            sqls.delete_user(login_ui.data_mysql,id)
+            print("操作完成")
+        # 删除完，把表进行更新，这个就是
+        self.all_user()
+
+    def all_student(self):
+        # TODO 添加操作
+        pass
+
+
+
+
 
 
 
@@ -382,6 +447,7 @@ class Sdept:
         self.ui.student_button2.clicked.connect(self.select2_student)
 
     def select_student(self):
+        # TODO 检索查询
         self.ui.student.show()
         # 查询现在这个院有什么班级
         # 首先查询是在什么院
