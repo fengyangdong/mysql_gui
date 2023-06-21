@@ -49,7 +49,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>7</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QTableWidget" name="sdept_table">
@@ -748,14 +748,15 @@
      </widget>
     </widget>
    </widget>
+   <widget class="QWidget" name="page_8"/>
   </widget>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>80</y>
+     <y>60</y>
      <width>121</width>
-     <height>361</height>
+     <height>451</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -788,7 +789,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="all_teacher_button">
       <property name="text">
        <string>老师管理</string>
       </property>

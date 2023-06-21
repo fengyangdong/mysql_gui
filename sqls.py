@@ -150,6 +150,7 @@ def add_user(mysql_word,username,password):
     :param password: 密码
     :return: 无
     """
+    # 不能改成关键字参数
     # 连接mysql
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
@@ -281,6 +282,7 @@ def delete_sdept(mysql_word, id):
 
 
 def delete_user(mysql_word, id):
+    # 不能改成关键字参数
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""

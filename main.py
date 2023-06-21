@@ -563,11 +563,15 @@ class Root:
         if self.ui.new_password.text() == self.ui.new_password2.text():
             # 输入密码不能和之前的密码一致
             if data_password != self.ui.new_password.text():
-               sqls.delete_user(login_ui.data_mysql, data_username)
-               sqls.add_user(login_ui.data_mysql, data_username, self.ui.new_password.text())
-               self.ui.label_word.setText("修改完成，注意：重新登录需要重新输入密码")
-               # 退出登录，重新登录
-               self.exit()
+                if self.ui.new_password.text() != "":
+
+                   sqls.delete_user(login_ui.data_mysql, data_username)
+                   sqls.add_user(login_ui.data_mysql, data_username, self.ui.new_password.text())
+                   self.ui.label_word.setText("修改完成，注意：重新登录需要重新输入密码")
+                   # 退出登录，重新登录
+                   self.exit()
+                else:
+                    self.ui.label_word.setText("不能为空")
             else:
                self.ui.label_word.setText("旧密码和新密码一致，不能修改")
 
@@ -584,10 +588,12 @@ class Root:
         data_password = data[0][1]
         # 用户名不能旧新一致
         if self.ui.new_username.text() != data_username:
-            sqls.delete_user(login_ui.data_mysql,data_username)
-            sqls.add_user(login_ui.data_mysql,self.ui.new_username.text(),data_password)
-            self.exit()
-
+            if self.ui.new_username.text() != "":
+                sqls.delete_user(login_ui.data_mysql,data_username)
+                sqls.add_user(login_ui.data_mysql,self.ui.new_username.text(),data_password)
+                self.exit()
+            else:
+                self.ui.label_word.setText("不能为空")
         else:
             self.ui.label_word.setText("用户名前后一致，不予修改")
 
