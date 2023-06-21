@@ -275,7 +275,17 @@ class Root:
         self.ui.student_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
         self.ui.student_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        header4 = CheckBoxHeader()
+        self.ui.class_table.setHorizontalHeader(header4)
+        header4.select_all_clicked.connect(header4.change_state)  # 行表头复选框单击信号与槽
+        self.ui.class_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.class_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        header5 = CheckBoxHeader()
+        self.ui.course_table.setHorizontalHeader(header5)
+        header5.select_all_clicked.connect(header5.change_state)  # 行表头复选框单击信号与槽
+        self.ui.course_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.course_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
 
     def hide(self):
@@ -285,6 +295,9 @@ class Root:
         self.ui.delete_sdept.hide()
         # self.ui.select_user.hide()
         self.ui.delete_user_widget.hide()
+        self.ui.add_root_widget.hide()
+        self.ui.change_password_widget.hide()
+        self.ui.change_username_widget.hide()
     def slot(self):
         # sdept
         self.ui.all_sdept_button.clicked.connect(self.all_sdept)
@@ -299,9 +312,28 @@ class Root:
         self.ui.all_user_button.clicked.connect(self.all_user)
         self.ui.delete_user.clicked.connect(self.delete_user)
         self.ui.delete_user2.clicked.connect(self.delete_user2)
+        self.ui.add_root_button.clicked.connect(self.add_root)
+        self.ui.add_root_button2.clicked.connect(self.add_root2)
 
         # student
         self.ui.all_student_button.clicked.connect(self.all_student)
+
+        # teacher
+        self.ui.all_teacher_button.clicked.connect(self.all_teacher)
+        # class
+        self.ui.all_class_button.clicked.connect(self.all_class)
+
+        # course
+        self.ui.all_course_button.clicked.connect(self.all_course)
+
+        # 其他
+        self.ui.exit_button.clicked.connect(self.exit)
+        self.ui.word_help_button.clicked.connect(self.word_help)
+        self.ui.my_word_button.clicked.connect(self.my_word)
+        self.ui.change_password_button.clicked.connect(self.change_my_password)
+        self.ui.change_password_button2.clicked.connect(self.change_my_password2)
+        self.ui.change_username_button.clicked.connect(self.change_my_username)
+        self.ui.change_username_button2.clicked.connect(self.change_my_username2)
     def all_sdept(self):
         """
         显示sdept的table，并且可以进行管理
@@ -412,15 +444,157 @@ class Root:
         # 删除完，把表进行更新，这个就是
         self.all_user()
 
+    def add_root(self):
+        # TODO 去重
+        self.ui.add_root_widget.show()
+
+    def add_root2(self):
+        # 把root的名称赋值给root_user
+        root_user = self.ui.root_user.text()
+        all_user = sqls.select_user(login_ui.data_mysql)
+        # 不能使用4位5位6位号码
+        if len(root_user) in (4,5,6):
+            self.ui.label_word.setText("错误，用户名不能使用4位5位6位号码")
+        else:
+            # 不能是重复的
+            for row in all_user:
+                if row[0] == root_user:
+                    self.ui.label_word.setText("错误，使用了相同的user，请修改名称")
+                    break
+            else:
+                # 到这一步说明没有重复的，开始执行
+                sqls.add_user(login_ui.data_mysql,root_user,"123456")
+                self.ui.label_word.setText("添加成功")
+                # 添加完成，更新table
+                self.all_user()
+
+
     def all_student(self):
-        # TODO 添加操作
-        pass
+        # TODO 添加操作，需要修改
+        # TODO 检索查询，删除学生操作，修改操作
+        # 展示页面
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(2)
+
+
+        # data = sqls.select_sdept(mysql_word=login_ui.data_mysql, id=login_ui.data_user["username"])
+        # data = data[0][1]
+        # print(data)
+        # 查询这个院有什么班，依次加到box中
+        # data_class = sqls.select_class(mysql_word=login_ui.data_mysql, sdept_name=data)
+        # for c in data_class:
+        #     self.ui.select_class_box.addItem(c[0])
+
+
+        # 查询所有学生
+        data = sqls.select_one_student(mysql_word=login_ui.data_mysql)
+        print(data)
+        self.ui.student_table.setRowCount(len(data))
+        for row in range(0, len(data)):
+            for column in range(0, len(data[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.student_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.student_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
 
 
 
+    def all_class(self):
+        # TODO 需要的功能和上面一样
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(3)
+        # 查询所有班级信息
+        data = sqls.select_class(mysql_word=login_ui.data_mysql)
+        print(data)
+        self.ui.class_table.setRowCount(len(data))
+        for row in range(0, len(data)):
+            for column in range(0, len(data[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.class_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.class_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
+
+    def all_course(self):
+        # TODO 需要的功能和上面一样
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(4)
+        # 查询所有班级信息
+        data = sqls.select_course(mysql_word=login_ui.data_mysql)
+        print(data)
+        self.ui.course_table.setRowCount(len(data))
+        for row in range(0, len(data)):
+            for column in range(0, len(data[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.course_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.course_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
+
+    def exit(self):
+        self.ui.hide()
+        # 退出需要关闭堆栈的widget
+        self.ui.stackedWidget.hide()
+        # 退出还需要重新执行一次hide函数
+        self.hide()
+        login_ui.ui.show()
 
 
+    def word_help(self):
+        # 显示
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(5)
 
+    def my_word(self):
+        # 显示
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(6)
+        data = sqls.select_user(login_ui.data_mysql, name=login_ui.data_user["username"])
+        self.ui.my_word_label.setText(f"用户名：\t{data[0][0]}\n密码：   \t{data[0][1]}\n")
+        self.ui.label_word.setText("修改用户名和密码的时候，都需要重新登录一次")
+
+    def change_my_password(self):
+        self.ui.change_password_widget.show()
+
+    def change_my_password2(self):
+        # 得到数据
+        data = sqls.select_user(login_ui.data_mysql, name=login_ui.data_user["username"])
+        data_username = data[0][0]
+        data_password = data[0][1]
+        # 两次密码需要输入正确一致
+        if self.ui.new_password.text() == self.ui.new_password2.text():
+            # 输入密码不能和之前的密码一致
+            if data_password != self.ui.new_password.text():
+               sqls.delete_user(login_ui.data_mysql, data_username)
+               sqls.add_user(login_ui.data_mysql, data_username, self.ui.new_password.text())
+               self.ui.label_word.setText("修改完成，注意：重新登录需要重新输入密码")
+               # 退出登录，重新登录
+               self.exit()
+            else:
+               self.ui.label_word.setText("旧密码和新密码一致，不能修改")
+
+        else:
+            self.ui.label_word.setText("你输入的密码前后不一致")
+
+    def change_my_username(self):
+        self.ui.change_username_widget.show()
+
+    def change_my_username2(self):
+        # 得到数据
+        data = sqls.select_user(login_ui.data_mysql, name=login_ui.data_user["username"])
+        data_username = data[0][0]
+        data_password = data[0][1]
+        # 用户名不能旧新一致
+        if self.ui.new_username.text() != data_username:
+            sqls.delete_user(login_ui.data_mysql,data_username)
+            sqls.add_user(login_ui.data_mysql,self.ui.new_username.text(),data_password)
+            self.exit()
+
+        else:
+            self.ui.label_word.setText("用户名前后一致，不予修改")
+
+    def all_teacher(self):
+        # 显示
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(7)
 
 class Sdept:
     def __init__(self):

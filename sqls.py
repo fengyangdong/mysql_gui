@@ -42,7 +42,7 @@ def InitializeDatabase(mysql_word, mydatabase):
     """
     cursor.execute(sql)
     sql=f"""
-    create table {mydatabase}.cource(
+    create table {mydatabase}.course(
     class_name varchar(20) ,
     course_name varchar(20),
     teacher_id varchar(20)
@@ -99,7 +99,7 @@ def InitializeDatabase(mysql_word, mydatabase):
     cursor.execute(sql)
     sql = f"""insert into {mydatabase}.class values ("大数据2101", '计算机院'); """
     cursor.execute(sql)
-    sql = f"""insert into {mydatabase}.cource values ("大数据2101", '数据库mysql',"10001"); """
+    sql = f"""insert into {mydatabase}.course values ("大数据2101", '数据库mysql',"10001"); """
     cursor.execute(sql)
     sql = f"""insert into {mydatabase}.class_student values ("大数据2101", 100001); """
     cursor.execute(sql)
@@ -108,19 +108,40 @@ def InitializeDatabase(mysql_word, mydatabase):
     db.close()
 
 
-def select_user(mysql_word):
+def select_user(mysql_word, name=""):
+    where = False
+    temp = False
     # 连接mysql
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""
-    select * from user
-    """
+    select * from user"""
+    if name != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  name = '{name}'"
+        temp = True
+    print(sql)
     cursor.execute(sql)
     name = cursor.fetchall()
     db.close()
     return name
 
 
+def select_course(mysql_word):
+    # 连接mysql
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],
+                         database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""
+        select * from course"""
+    cursor.execute(sql)
+    name = cursor.fetchall()
+    db.close()
+    return name
 def add_user(mysql_word,username,password):
     """
     没什么说的，简单，自己看
@@ -132,9 +153,8 @@ def add_user(mysql_word,username,password):
     # 连接mysql
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
-    sql = """
-        insert into user values(%s, %s)
-        """ % (username, password)
+    sql = f"""
+        insert into user values('{username}', '{password}')"""
 
     cursor.execute(sql)
     db.commit()
@@ -171,7 +191,7 @@ def select_one_student(mysql_word, id="", sdept=""):
     return data
 
 
-def change_student(mysql_word, user_word,user,sex,phone,email,home):
+def change_student(mysql_word, user_word="",user="",sex="",phone="",email="",home=""):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""update student set s_id = '{user_word['username']}'"""
@@ -192,6 +212,21 @@ def change_student(mysql_word, user_word,user,sex,phone,email,home):
     db.commit()
     db.close()
 
+
+# def _user(mysql_word, name="",new_name="", new_password=""):
+#     where = False
+#     temp = False
+#     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+#     cursor = db.cursor()
+#     sql = f"""alter user set """
+#     if id != "":
+#         if where == False:
+#             sql += " where "
+#             where = True
+#         if temp != False:
+#             sql += " , "
+#         sql +=f"  s_id = '{id}'"
+#         temp = True
 def select_sdept(mysql_word, id=""):
     where = False
     temp = False
@@ -224,6 +259,16 @@ def add_sdept(mysql_word, id, name, user):
     db.commit()
     db.close()
 
+# def add_root(mysql_word, user):
+#     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+#     cursor = db.cursor()
+#     sql = f"""
+#         insert into user value ('{user}')
+#         """
+#     cursor.execute(sql)
+#     db.commit()
+#     db.close()
+
 def delete_sdept(mysql_word, id):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
@@ -244,7 +289,7 @@ def delete_user(mysql_word, id):
     db.commit()
     db.close()
 
-def select_class(mysql_word, sdept_name):
+def select_class(mysql_word, sdept_name=""):
     where = False
     temp = False
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
