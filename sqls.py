@@ -57,7 +57,8 @@ def InitializeDatabase(mysql_word, mydatabase):
     t_sex char(1) ,
     s_phone char(11),
     e_emile varchar(30),
-    s_home varchar(20) 
+    s_home varchar(20) ,
+    s_sdept varchar(20)
     );
     """
     cursor.execute(sql)
@@ -126,18 +127,37 @@ def select_user(mysql_word, name=""):
         temp = True
     print(sql)
     cursor.execute(sql)
-    name = cursor.fetchall()
+    name1 = cursor.fetchall()
     db.close()
-    return name
+    return name1
 
 
-def select_course(mysql_word):
+def select_course(mysql_word, id="",name=""):
+    where = False
+    temp = False
     # 连接mysql
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],
                          database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""
         select * from course"""
+    if id != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  teacher_id = '{id}'"
+        temp = True
+    if name != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  class_name = '{name}'"
+        temp = True
+    print(sql)
     cursor.execute(sql)
     name = cursor.fetchall()
     db.close()
@@ -161,7 +181,22 @@ def add_user(mysql_word,username,password):
     db.commit()
     db.close()
 
+def add_teacher(mysql_word,id="",name="",sex="",phone="",email="",home="",sdept=""):
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql=f"""insert into teacher values ('{id}','{name}','{sex}','{phone}','{email}','{home}','{sdept}')"""
+    cursor.execute(sql)
+    db.commit()
+    db.close()
 
+
+def add_course(mysql_word,class_name,course_name,teacher_id):
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql=f"""insert into course values ('{class_name}','{course_name}','{teacher_id}')"""
+    cursor.execute(sql)
+    db.commit()
+    db.close()
 def select_one_student(mysql_word, id="", sdept=""):
     where = False
     temp = False
@@ -191,6 +226,28 @@ def select_one_student(mysql_word, id="", sdept=""):
     db.close()
     return data
 
+
+def select_teacher(mysql_word, id=""):
+    where = False
+    temp = False
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    # 如果是dict，说明传进来的是user.json
+    sql = f"""select * from teacher"""
+    if id != "":
+        if where == False:
+            sql += " where "
+            where = True
+        if temp != False:
+            sql += " , "
+        sql +=f"  t_id = '{id}'"
+        temp = True
+
+    print(sql)
+    cursor.execute(sql)
+    data = cursor.fetchall()
+    db.close()
+    return data
 
 def change_student(mysql_word, user_word="",user="",sex="",phone="",email="",home=""):
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
@@ -251,6 +308,7 @@ def select_sdept(mysql_word, id=""):
     return data
 
 def add_sdept(mysql_word, id, name, user):
+    # 不能使用关键字参数
     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
     cursor = db.cursor()
     sql = f"""
@@ -259,6 +317,27 @@ def add_sdept(mysql_word, id, name, user):
     cursor.execute(sql)
     db.commit()
     db.close()
+
+
+def add_student(mysql_word,id="",name="",sex="",phone="",email="",home="",dorm="",sdept="",s_class=""):
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql=f"""insert into student values ('{id}','{name}','{sex}','{phone}','{email}','{home}','{dorm}','{sdept}','{s_class}')"""
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+def add_class(mysql_word, sdept, class_name):
+    # 不能使用关键字参数
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],
+                         database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""
+            insert into class value ('{class_name}','{sdept}')"""
+    print(sql)
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+
 
 # def add_root(mysql_word, user):
 #     db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
@@ -291,6 +370,41 @@ def delete_user(mysql_word, id):
     db.commit()
     db.close()
 
+
+def delete_student(mysql_word, id):
+    # 不能改成关键字参数
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""
+        delete from student where s_id = '{id}'"""
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+
+
+def delete_teacher(mysql_word, id):
+    # 不能改成关键字参数
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""
+        delete from teacher where t_id = '{id}'"""
+    print(sql)
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+
+
+def delete_course(mysql_word, class_name,name,teacher):
+    # 不能改成关键字参数
+    # 因为这个字段比较少，而且不可能出现空的情况，所以直接全部删除了
+    db = pymysql.connect(host=mysql_word["hostname"], user=mysql_word["username"], password=mysql_word["password"],database=mysql_word["database"])
+    cursor = db.cursor()
+    sql = f"""
+        delete from course where class_name = '{class_name}' and course_name='{name}' and teacher_id = '{teacher}' """
+    print(sql)
+    cursor.execute(sql)
+    db.commit()
+    db.close()
 def select_class(mysql_word, sdept_name=""):
     where = False
     temp = False

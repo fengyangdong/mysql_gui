@@ -117,7 +117,6 @@ class Login:
     def slot(self):
         self.ui.user_in.clicked.connect(self.fun_in)
         self.ui.user_database_button.clicked.connect(self.fun_database)
-        self.ui.user_logon.clicked.connect(self.fun_login)
     def fun_in(self):
         # 首先必须更新mysql.json的信息，因为这个是连接mysql的文件内容，而且前面初始化也没有修改mysql.json
         # 里面的信息，所以必须先修改mysql.json的信息
@@ -197,10 +196,7 @@ class Login:
                 self.temp_database = True
 
 
-    def fun_login(self):
-        # 只要需要连接mysql，就需要更新一次数据库，以免用户中途修改数据库，但是注册的时候不用修改mysql.json，可以先修改data_mysql的值
-        self.data_mysql["database"] = self.ui.user_database.text()
-        register_ui.ui.show()
+
 
 
 class Register:
@@ -287,6 +283,11 @@ class Root:
         self.ui.course_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
         self.ui.course_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        header6 = CheckBoxHeader()
+        self.ui.teacher_table.setHorizontalHeader(header6)
+        header6.select_all_clicked.connect(header6.change_state)  # 行表头复选框单击信号与槽
+        self.ui.teacher_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.teacher_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def hide(self):
         self.ui.stackedWidget.hide()
@@ -298,6 +299,14 @@ class Root:
         self.ui.add_root_widget.hide()
         self.ui.change_password_widget.hide()
         self.ui.change_username_widget.hide()
+        self.ui.add_class_widget.hide()
+        self.ui.add_student_widget.hide()
+        self.ui.delete_student_widget.hide()
+        self.ui.add_teacher_widget.hide()
+        self.ui.delete_teacher_widget.hide()
+        self.ui.teacher_class_widget.hide()
+        self.ui.add_course_widget.hide()
+        self.ui.delete_course_widget.hide()
     def slot(self):
         # sdept
         self.ui.all_sdept_button.clicked.connect(self.all_sdept)
@@ -317,14 +326,32 @@ class Root:
 
         # student
         self.ui.all_student_button.clicked.connect(self.all_student)
+        self.ui.add_student_button.clicked.connect(self.add_student)
+        self.ui.add_student_button2.clicked.connect(self.add_student2)
+        self.ui.student_sdept_box.currentIndexChanged.connect(self.change_sdept_class)
+        self.ui.delete_student_button.clicked.connect(self.delete_student)
+        self.ui.delete_student_button2.clicked.connect(self.delete_student2)
 
         # teacher
         self.ui.all_teacher_button.clicked.connect(self.all_teacher)
+        self.ui.add_teacher_button.clicked.connect(self.add_teacher)
+        self.ui.add_teacher_button2.clicked.connect(self.add_teacher2)
+        self.ui.delete_teacher_button.clicked.connect(self.delete_teacher)
+        self.ui.delete_teacher_button2.clicked.connect(self.delete_teacher2)
+        self.ui.teacher_class_button.clicked.connect(self.teacher_class_word)
+
         # class
         self.ui.all_class_button.clicked.connect(self.all_class)
+        self.ui.add_class_button.clicked.connect(self.add_class)
+        self.ui.add_class_button2.clicked.connect(self.add_class2)
 
         # course
         self.ui.all_course_button.clicked.connect(self.all_course)
+        self.ui.add_course_button.clicked.connect(self.add_course)
+        self.ui.add_course_button2.clicked.connect(self.add_course2)
+        self.ui.delete_course_button.clicked.connect(self.delete_course)
+        self.ui.delete_course_button2.clicked.connect(self.delete_course2)
+
 
         # 其他
         self.ui.exit_button.clicked.connect(self.exit)
@@ -440,7 +467,7 @@ class Root:
                 delete_list.append(self.ui.user_table.item(row,1).text())
         for id in delete_list:
             sqls.delete_user(login_ui.data_mysql,id)
-            print("操作完成")
+            self.ui.label_word.setText("删除操作完成")
         # 删除完，把表进行更新，这个就是
         self.all_user()
 
@@ -488,7 +515,6 @@ class Root:
 
         # 查询所有学生
         data = sqls.select_one_student(mysql_word=login_ui.data_mysql)
-        print(data)
         self.ui.student_table.setRowCount(len(data))
         for row in range(0, len(data)):
             for column in range(0, len(data[0])):
@@ -497,6 +523,64 @@ class Root:
                 self.ui.student_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
                 self.ui.student_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
 
+    def change_sdept_class(self):
+        # 我们不能重复添加，所以在执行这个之前，我们应该clear
+        self.ui.student_class_box.clear()
+        # 这是添加班级
+        data = sqls.select_class(login_ui.data_mysql,sdept_name=self.ui.student_sdept_box.currentText())
+        for row in data:
+            self.ui.student_class_box.addItem(row[0])
+
+
+    def add_student(self):
+        # 显示，并且把两个box的信息添加上
+        self.ui.add_student_widget.show()
+        data = sqls.select_sdept(login_ui.data_mysql)
+        # student_sdept_box
+        # 首先添加学院，然后添加班级，通过不同的学院来选择不同的班级
+        for row in data:
+            self.ui.student_sdept_box.addItem(row[1])
+        # 提示语句
+        self.ui.label_word.setText("添加学生的同时，会自动添加user账号，这个账号默认密码是123456，密码请学生自己登录账号修改")
+
+
+    def add_student2(self):
+
+        # 检查学号长度标准
+        if len(self.ui.student_id.text()) == 6:
+            # 检测学号是否重样
+            data = sqls.select_one_student(login_ui.data_mysql,self.ui.student_id.text())
+            # 不同样就是没有得到数据，所以长度为0才是对的
+            if len(data) == 0:
+                # 开始添加
+                sqls.add_student(login_ui.data_mysql,id=self.ui.student_id.text(), sdept=self.ui.student_sdept_box.currentText(),
+                                  s_class=self.ui.student_class_box.currentText(),name=self.ui.student_name.text())
+                self.ui.label_word.setText("学生表添加成功")
+                # 接下来就可以刷新一次table
+                self.all_student()
+                # 添加user数据
+                sqls.add_user(login_ui.data_mysql,self.ui.student_id.text(),123456)
+                self.ui.label_word.setText("学生表添加成功------user表添加成功")
+            else:
+                self.ui.label_word.setText("学号重复，请换一个6位的")
+        else:
+            self.ui.label_word.setText("学号长度不对，请重新输入")
+
+
+    def delete_student(self):
+        self.ui.delete_student_widget.show()
+
+    def delete_student2(self):
+        delete_list = []
+        for row in range(self.ui.student_table.rowCount()):
+            if self.ui.student_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                delete_list.append(self.ui.student_table.item(row,1).text())
+        for id in delete_list:
+            sqls.delete_student(login_ui.data_mysql,id)
+        self.ui.label_word.setText("删除完成")
+        # 刷新table
+        self.all_student()
 
 
     def all_class(self):
@@ -514,6 +598,21 @@ class Root:
                 self.ui.class_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
                 self.ui.class_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
 
+    def add_class(self):
+        # 执行之前，清除之前的box
+        self.ui.add_class_sdept_box.clear
+        self.ui.add_class_widget.show()
+        data_class = sqls.select_sdept(login_ui.data_mysql)
+        # 添加box
+        print(data_class)
+        for c in data_class:
+            self.ui.add_class_sdept_box.addItem(c[1])
+
+    def add_class2(self):
+        # 添加
+        sqls.add_class(login_ui.data_mysql,self.ui.add_class_sdept_box.currentText(),self.ui.add_classname.text())
+        # 更新table
+        self.all_class()
     def all_course(self):
         # TODO 需要的功能和上面一样
         self.ui.stackedWidget.show()
@@ -528,6 +627,53 @@ class Root:
                 all_header_checkbox.append(checkbox)
                 self.ui.course_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
                 self.ui.course_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
+
+    def add_course(self):
+        # 显示
+        self.ui.add_course_widget.show()
+        # 添加box数据
+        data = sqls.select_class(login_ui.data_mysql)
+        for row in data:
+            self.ui.add_course_class_box.addItem(row[0])
+        data = sqls.select_teacher(login_ui.data_mysql)
+        for row in data:
+            self.ui.add_course_teacher_box.addItem(f"{row[1]}:{row[0]}")
+
+    def add_course2(self):
+        # 首先，课程号是不能同名的
+        data = sqls.select_course(login_ui.data_mysql,name=self.ui.add_course_name.text())
+        if len(data) == 0:
+            # 现在就可以添加了，添加之前需要把老师的box的值改一下,因为老师的box是姓名加id，我们只需要id
+            id = self.ui.add_course_teacher_box.currentText()
+            id = id[id.index(":")+1:]
+            sqls.add_course(login_ui.data_mysql,self.ui.add_course_class_box.currentText(),self.ui.add_course_name.text(),id)
+            # 刷新一下table
+            self.all_course()
+
+    def delete_course(self):
+        self.ui.delete_course_widget.show()
+
+
+    def delete_course2(self):
+        # 判断那些行选中
+        delete_list = []
+        all_list = []
+        for row in range(self.ui.course_table.rowCount()):
+            if self.ui.course_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                delete_list.append(self.ui.course_table.item(row, 1).text())
+                delete_list.append(self.ui.course_table.item(row, 2).text())
+                delete_list.append(self.ui.course_table.item(row, 3).text())
+                # 因为这个是三个为信息，所以需要把这三个弄在一起
+                all_list.append(delete_list)
+
+                # 添加完成之后，需要清空，防止重复出现
+                # 这里一定不能使用clear的方法，因为clear会导致all_list里面的值也删除了，因为append是浅拷贝，所以选择重新赋值的方法来删除
+                delete_list=[]
+        for id in all_list:
+            sqls.delete_course(login_ui.data_mysql,id[0],id[1],id[2])
+        # 删除完，把表进行更新，这个就是
+        self.all_course()
 
     def exit(self):
         self.ui.hide()
@@ -601,6 +747,90 @@ class Root:
         # 显示
         self.ui.stackedWidget.show()
         self.ui.stackedWidget.setCurrentIndex(7)
+        # 读取所有的teacher
+        data = sqls.select_teacher(login_ui.data_mysql)
+        self.ui.teacher_table.setRowCount(len(data))
+        for row in range(0, len(data)):
+            for column in range(0, len(data[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.teacher_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.teacher_table.setItem(row, column + 1, QTableWidgetItem(f"{data[row][column]}"))
+
+
+    def add_teacher(self):
+        self.ui.add_teacher_widget.show()
+        # 更新box里面的信息，box里面的信息是学院
+        data = sqls.select_sdept(login_ui.data_mysql)
+        for row in data:
+            self.ui.teacher_sdept_box.addItem(row[1])
+            # 提示语句
+        self.ui.label_word.setText(
+            "教师ID定长为5位数。添加教师的同时，会自动添加user账号，这个账号默认密码是123456，密码请教师自己登录账号修改")
+
+    def add_teacher2(self):
+        # 按照长度标准
+        if len(self.ui.add_teacher_id.text()) == 5:
+            # 检测老师这个有没有id重样的
+            data = sqls.select_teacher(login_ui.data_mysql,id=self.ui.add_teacher_id.text())
+            # 如果检测不出数据就说明长度就是0，长度为0才能说明是正确的
+            if len(data) == 0:
+                sqls.add_teacher(login_ui.data_mysql,id=self.ui.add_teacher_id.text(),
+                                 sdept=self.ui.teacher_sdept_box.currentText(),name=self.ui.add_teacher_name.text())
+                # 添加完成后，刷新一次table
+                self.all_teacher()
+                # 添加user数据
+                sqls.add_user(login_ui.data_mysql, self.ui.add_teacher_id.text(), 123456)
+                self.ui.label_word.setText("老师表添加成功------user表添加成功，user账号为id，user默认密码为123456")
+            else:
+                self.ui.label_word.setText("id重复，请换一个5位的")
+        else:
+            self.ui.label_word.setText("id长度不对，请重新输入")
+
+    def delete_teacher(self):
+        self.ui.delete_teacher_widget.show()
+
+    def delete_teacher2(self):
+        # 判断那些行选中
+        delete_list = []
+        for row in range(self.ui.teacher_table.rowCount()):
+            if self.ui.teacher_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                delete_list.append(self.ui.teacher_table.item(row, 1).text())
+        for id in delete_list:
+            print(id)
+            sqls.delete_teacher(login_ui.data_mysql, id)
+            self.ui.label_word.setText("删除操作完成")
+            # 还需要删除user里面的数据
+            sqls.delete_user(login_ui.data_mysql,id)
+        # 删除完，把表进行更新，这个就是
+        self.all_teacher()
+
+    def teacher_class_word(self):
+        self.ui.teacher_class_widget.show()
+        self.ui.teacher_class_word.setText("选择上面进行操作。")
+        teacher_dict = {}
+        for row in range(self.ui.teacher_table.rowCount()):
+            if self.ui.teacher_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                teacher_dict[self.ui.teacher_table.item(row, 1).text()] =  self.ui.teacher_table.item(row, 2).text()
+        for id in teacher_dict:
+            # 把查询出来的老师，带入到class班级查询中，查询班级
+            # 首先加上老师信息，然后加上课程信息，然后加上班级信息
+            self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text()+f"\n{teacher_dict[id]}:")
+            data = sqls.select_course(login_ui.data_mysql,id=id)
+            # 检验data是否为空
+            if len(data) == 0:
+                self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text() + f"没有课程")
+                continue
+            else:
+                self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text()+f"{data[0][1]}")
+                self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text() + f"\n班级：")
+                for c in data:
+                    self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text() + f"\n{data[0][0]}")
+            self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text() + f"\n----------------")
+
+
 
 class Sdept:
     def __init__(self):

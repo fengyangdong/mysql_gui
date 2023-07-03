@@ -90,13 +90,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="user_logon">
-        <property name="text">
-         <string>学生注册</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>

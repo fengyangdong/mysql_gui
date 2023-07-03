@@ -14,7 +14,16 @@
 
 """
 这个可以实现修改表进行判定
+        for c in data_class:
+            self.ui.select_class_box.addItem(c[0])
+                def select2_student(self):
+        print(self.ui.select_sdept_box.currentText())
 
+                delete_list = []
+        for row in range(self.ui.sdept_table.rowCount()):
+            if self.ui.sdept_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                delete_list.append(self.ui.sdept_table.item(row,1).text())
 """
 from PyQt5.QtWidgets import QApplication, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import Qt
