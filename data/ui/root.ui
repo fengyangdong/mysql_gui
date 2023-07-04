@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
+    <width>1236</width>
     <height>814</height>
    </rect>
   </property>
@@ -38,18 +38,21 @@
    <property name="text">
     <string/>
    </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QStackedWidget" name="stackedWidget">
    <property name="geometry">
     <rect>
      <x>130</x>
      <y>70</y>
-     <width>861</width>
+     <width>1071</width>
      <height>651</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>7</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QTableWidget" name="sdept_table">
@@ -428,7 +431,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>881</width>
+       <width>1041</width>
        <height>192</height>
       </rect>
      </property>
@@ -851,7 +854,7 @@
        <string>添加</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>20</x>

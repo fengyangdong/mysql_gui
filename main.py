@@ -160,6 +160,8 @@ class Login:
                         break
                     elif len(user[0]) == 5:
                         print("这是老师")
+                        teacher_ui.ui.show()
+                        teacher_ui.ui.teacher_title.setText(f"你好教师，您的编号是{login_ui.data_user['username']}")
                         break
                     elif len(user[0]) == 4:
                         sdept_ui.ui.show()
@@ -169,6 +171,8 @@ class Login:
                     else:
                         print("这是root")
                         root_ui.ui.show()
+                        # 初始化title
+                        root_ui.ui.root_title.setText(f"你是超级管理员，你的编号为{login_ui.data_user['username']}")
                         break
                 # 这里是用户名正确但是密码不正确
                 else:
@@ -250,8 +254,7 @@ class Root:
         # 空白处理
         self.hide()
         # 初始化
-        # 初始化title
-        self.ui.root_title.setText(f"你是超级管理员，你的编号为{login_ui.data_user['username']}")
+
         # 初始化check操作
         header1 = CheckBoxHeader()
         self.ui.sdept_table.setHorizontalHeader(header1)  # 设置头复选框
@@ -640,7 +643,8 @@ class Root:
             self.ui.add_course_teacher_box.addItem(f"{row[1]}:{row[0]}")
 
     def add_course2(self):
-        # 首先，课程号是不能同名的
+        # 首先，课程号和班级整体不能重名是不能同名的
+        # TODO 这里有bug，需要课程号和班级号都不能重名，而不是单独的课程号不同命
         data = sqls.select_course(login_ui.data_mysql,name=self.ui.add_course_name.text())
         if len(data) == 0:
             # 现在就可以添加了，添加之前需要把老师的box的值改一下,因为老师的box是姓名加id，我们只需要id
@@ -677,8 +681,6 @@ class Root:
 
     def exit(self):
         self.ui.hide()
-        # 退出需要关闭堆栈的widget
-        self.ui.stackedWidget.hide()
         # 退出还需要重新执行一次hide函数
         self.hide()
         login_ui.ui.show()
@@ -759,6 +761,8 @@ class Root:
 
 
     def add_teacher(self):
+        # 每次进行之前需要清除box
+        self.ui.teacher_sdept_box.clear()
         self.ui.add_teacher_widget.show()
         # 更新box里面的信息，box里面的信息是学院
         data = sqls.select_sdept(login_ui.data_mysql)
@@ -830,6 +834,338 @@ class Root:
                     self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text() + f"\n{data[0][0]}")
             self.ui.teacher_class_word.setText(self.ui.teacher_class_word.text() + f"\n----------------")
 
+
+class Teacher:
+    def __init__(self):
+        # 加载
+        qfile = QFile("data/ui/teacher.ui")
+        qfile.open(QFile.ReadOnly)
+        qfile.close()
+        self.ui = QUiLoader().load(qfile)
+        # 初始化title
+        self.ui.teacher_title.setText(f"你是教师，你的编号为{login_ui.data_user['username']}")
+        self.slot()
+        self.hide()
+
+        header1 = CheckBoxHeader()
+        self.ui.all_student_table.setHorizontalHeader(header1)
+        header1.select_all_clicked.connect(header1.change_state)  # 行表头复选框单击信号与槽
+        self.ui.all_student_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置整行选中
+        self.ui.all_student_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+    def hide(self):
+        self.ui.stackedWidget.hide()
+        self.ui.change_my_word_widget.hide()
+        self.ui.add_course_widget.hide()
+        self.ui.change_password_widget.hide()
+
+    def slot(self):
+        # 自己信息
+        self.ui.all_my_word_button.clicked.connect(self.my_word)
+        self.ui.change_my_word_button.clicked.connect(self.change_my_word)
+        self.ui.change_my_word_button2.clicked.connect(self.change_my_word2)
+
+        # 查询学生和课程
+        self.ui.all_course_student_butoon.clicked.connect(self.all_course_student)
+        self.ui.select_course_box.currentIndexChanged.connect(self.change_course_student)
+        self.ui.select_student_word_button.clicked.connect(self.select_student_word)
+        self.ui.add_course_button.clicked.connect(self.add_course)
+        self.ui.add_course_button2.clicked.connect(self.add_course2)
+        self.ui.select_sdept_box.currentIndexChanged.connect(self.select_sdept_class)
+
+        # 成绩管理
+        self.ui.select_course_box2.currentIndexChanged.connect(self.change_course)
+        self.ui.all_score_button.clicked.connect(self.all_score)
+        # 因为修改table只能是打开表完成后才能执行这个槽函数，所以这个槽函数需要放在后面需要的时候,后面有专门的方法
+        self.ui.student_score_table.cellChanged.connect(self.change_score)
+
+        # 其他
+        self.ui.exit_button.clicked.connect(self.exit)
+
+        # 修改密码功能
+        # 修改密码的功能和前面root的功能是一样的
+        self.ui.all_change_password_button.clicked.connect(self.all_change)
+        self.ui.change_password_button.clicked.connect(self.change_my_password)
+        self.ui.change_password_button2.clicked.connect(self.change_my_password2)
+
+    def my_word(self):
+        # 显示信息
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(0)
+        # 查询出自己的信息，其中包括teacher表里面的数据，还有course里面的数据，甚至我们可以查看自己的学生
+        # 首先查询出自己的信息，添加到word中
+        data = sqls.select_teacher(login_ui.data_mysql,login_ui.data_user["username"])
+        # 这个数据在teacher中还有很多的地方可以使用，所以弄成了self变量
+        self.mydata=list(data[0])
+        print(111,self.mydata)
+        self.ui.all_word.setText(f"id：{data[0][0]}\n姓名：{data[0][1]}\n性别：{data[0][2]}\n电话：{data[0][3]}\n邮箱：{data[0][4]}"
+                                 f"\n家庭住址：{data[0][5]}\n所在院：{data[0][6]}")
+        # 然后添加course的信息，就是添加自己的所教的课程
+        data = sqls.select_course(login_ui.data_mysql,id=login_ui.data_user["username"])
+        # 检验data是否为空
+        if len(data) == 0:
+            self.ui.all_word.setText(self.ui.all_word.text() + f"\n课程：无")
+        else:
+            self.ui.all_word.setText(self.ui.all_word.text() + f"\n老师所教课程：{data[0][1]}\n班级：")
+            for c in data:
+                self.ui.all_word.setText(self.ui.all_word.text() + f"\n{data[0][0]}")
+
+    def change_my_word(self):
+        # 展示图形
+        self.ui.change_my_word_widget.show()
+        # 添加默认数据
+        self.ui.change_my_name.setText(self.mydata[1])
+        if self.mydata[0][2] == "男":
+            self.ui.select_sex_box.setCurrentIndex(0)
+        else:
+            self.ui.select_sex_box.setCurrentIndex(1)
+        self.ui.change_my_phone.setText(self.mydata[3])
+        self.ui.change_my_email.setText(self.mydata[4])
+        self.ui.change_my_home.setText(self.mydata[5])
+
+
+    def change_my_word2(self):
+        # 开始操作，操作的过程是，删除本数据，然后重新添加新数据，这样就不用重复写change的sqls，直接使用现成的delete和add就行
+        # 首先更新mydata数据，把里面的值修改才成现在需要的
+        self.mydata = self.mydata
+        self.mydata[1] = self.ui.change_my_name.text()
+        self.mydata[2] = self.ui.select_sex_box.currentText()
+        self.mydata[3] = self.ui.change_my_phone.text()
+        self.mydata[4] = self.ui.change_my_email.text()
+        self.mydata[5] = self.ui.change_my_home.text()
+        print(self.mydata)
+        # 接下来删除加重新添加
+        sqls.delete_teacher(login_ui.data_mysql,id=self.mydata[0])
+        sqls.add_teacher(login_ui.data_mysql,id=self.mydata[0],name=self.mydata[1],sex=self.mydata[2],phone=self.mydata[3],
+                         email=self.mydata[4],home=self.mydata[5],sdept=self.mydata[6])
+        # 刷新word里面的值
+        self.my_word()
+
+    def all_course_student(self):
+        # 注意，box需要更新，不能重复添加，所以先clear
+        self.ui.select_course_box.clear()
+        # 首先显示
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(1)
+        # 查询出课程信息，把课程信息加在table和box中
+        data = sqls.select_course(login_ui.data_mysql,id=login_ui.data_user["username"])
+        # 去除重复的，改成set类型
+        course_set = set()
+        for i in data:
+            course_set.add(i[1])
+        # 因为set是无序的，需要改成list才有效果
+        course_list = list(course_set)
+        self.ui.all_course_table.setRowCount(len(course_list))
+        for row in range(0,len(course_list)):
+            print(data[row][1])
+            self.ui.all_course_table.setItem(row, 0, QTableWidgetItem(f"{course_list[row]}"))
+            self.ui.select_course_box.addItem(course_list[row])
+
+    def change_course_student(self):
+        # 这个函数主要是改student里面的table的
+        # 首先把课程信息改为班级信息，然后挨个把班级和学生的信息加到table中
+        course = self.ui.select_course_box.currentText()
+        # 因为一个班级教的课，其他老师可能也会教学，所以一定要限定老师id
+        data = sqls.select_course(login_ui.data_mysql,name=course,id=login_ui.data_user["username"])
+        # 定义一个存储list
+        data_table = []
+        for i in data:
+            # 得到的班级信息，然后再student中，找到相应的学生信息
+            one_course = i[0]
+            student_data = sqls.select_one_student(login_ui.data_mysql,class_name=one_course)
+
+            for student in student_data:
+                # 定义第一维度的list
+                temp_list=[one_course,student[1],student[0]]
+                # 添加在data_table中
+                data_table.append(temp_list)
+                # 清空templist，注意，因为appen是浅拷贝，所以不能使用clear
+                temp_list=[]
+        # 添加到table中
+        self.ui.all_student_table.setRowCount(len(data_table))
+        for row in range(0, len(data_table)):
+            for column in range(0, len(data_table[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.all_student_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.all_student_table.setItem(row, column+1, QTableWidgetItem(f"{data_table[row][column]}"))
+
+
+    def select_student_word(self):
+        student_list = []
+        for row in range(self.ui.all_student_table.rowCount()):
+            if self.ui.all_student_table.cellWidget(row, 0).isChecked() is True:
+                # 把选中的行进行删除操作
+                student_list.append(self.ui.all_student_table.item(row,3).text())
+        print(student_list)
+        # 把选中的学生，在进行一次student的查询，得到的数据放在下面的学生表中，这里可以直接套用root里面查询学生的方法
+        student_table = []
+        for student in student_list:
+            data = sqls.select_one_student(mysql_word=login_ui.data_mysql,id=student)
+            student_table.append(data[0])
+
+        self.ui.student_table.setRowCount(len(student_table))
+        for row in range(0, len(student_table)):
+            for column in range(0, len(student_table[0])):
+                checkbox = QCheckBox()
+                all_header_checkbox.append(checkbox)
+                self.ui.student_table.setCellWidget(row, 0, checkbox)  # 设置表格可选项
+                self.ui.student_table.setItem(row, column + 1, QTableWidgetItem(f"{student_table[row][column]}"))
+
+    def add_course(self):
+        self.ui.add_course_widget.show()
+        # 更新信息，学院信息，和班级信息
+        data = sqls.select_sdept(login_ui.data_mysql)
+        for i in data:
+            self.ui.select_sdept_box.addItem(i[1])
+        # 默认class box是全的，所以添加，还是需要清空,直接执行这个函数就可以了
+        self.select_sdept_class()
+
+    def select_sdept_class(self):
+        # 这里和上面的add_course是一样的，是更新class box的值
+        # 需要删除之前的信息，以免重复出现
+        self.ui.select_class_box.clear()
+        # 如果全那么就是全校的所有的班级
+        if self.ui.select_sdept_box.currentText() == "全":
+            data = sqls.select_class(login_ui.data_mysql)
+        else:
+            data = sqls.select_class(login_ui.data_mysql,sdept_name=self.ui.select_sdept_box.currentText())
+        for i in data:
+            self.ui.select_class_box.addItem(i[0])
+
+    def add_course2(self):
+        # 现在就可以添加课程了，课程需要的信息是：班级名，课程名，老师id
+        # 课程名不能出现重复，因为前面root界面已经写过了，直接抄就行
+        # TODO 这里有bug，后面再改
+        # data = sqls.select_course(login_ui.data_mysql,name=self.ui.add_class_name.text())
+        data = []
+        # 如果len长没有，就说明没有重名的
+        if len(data) == 0:
+            print(1111)
+            # 现在就可以添加了，老师只能是自己
+            id = login_ui.data_user["username"]
+            sqls.add_course(login_ui.data_mysql, self.ui.select_class_box.currentText(),
+                            self.ui.add_class_name.text(), id)
+            # 刷新一下table
+            self.all_course_student()
+
+    def all_score(self):
+        # 显示
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(2)
+
+        self.ui.select_course_box2.clear()
+        # 我们需要把box添加上自己的课程,前面写过，就直接copy
+        # 查询出课程信息，把课程信息加在table和box中
+        data = sqls.select_course(login_ui.data_mysql, id=login_ui.data_user["username"])
+        # 去除重复的，改成set类型
+        course_set = set()
+        for i in data:
+            course_set.add(i[1])
+        # 因为set是无序的，需要改成list才有效果
+        course_list = list(course_set)
+        self.ui.all_course_table.setRowCount(len(course_list))
+        for row in range(0, len(course_list)):
+            self.ui.select_course_box2.addItem(course_list[row])
+        # 更新table里面的数据
+        self.change_course()
+
+    def change_course(self):
+        # 在修改表的数据，需要关闭修改表格的槽函数
+        self.ui.student_score_table.blockSignals(True)
+        course = self.ui.select_course_box2.currentText()
+        # 因为一个班级教的课，其他老师可能也会教学，所以一定要限定老师id
+        data = sqls.select_course(login_ui.data_mysql, name=course, id=login_ui.data_user["username"])
+        # 定义一个存储list
+        data_table = []
+        for i in data:
+            # 得到的班级信息，然后再student中，找到相应的学生信息
+            # one_class是课程信息，course是课程信息
+            one_class = i[0]
+            student_data = sqls.select_one_student(login_ui.data_mysql, class_name=one_class)
+            for student in student_data:
+                score_data = sqls.select_score(login_ui.data_mysql,id=student[0],name=course)
+                if len(score_data) == 0:
+                    # 如果len长为0，说明没有成绩信息，说明还没有出成绩
+                    temp_list=[student[1],student[0],student[8],"无成绩"]
+                    data_table.append(temp_list)
+                    # 清空，防止重复出现
+                    temp_list = []
+                else:
+                    # 如果len不为0，说明有成绩信息
+                    temp_list=[student[1],student[0],student[8],score_data[0][3]]
+                    data_table.append(temp_list)
+                    temp_list = []
+            # 完成数据的收集，开天写入table中
+            self.ui.student_score_table.setRowCount(len(data_table))
+            for row in range(0, len(data_table)):
+                for column in range(0, len(data_table[0])):
+                    self.ui.student_score_table.setItem(row, column, QTableWidgetItem(f"{data_table[row][column]}"))
+        # 当把里面的数据修改完，就可以关闭这个限制
+        self.ui.student_score_table.blockSignals(False)
+
+    def change_score(self, row, column):
+        item = self.ui.student_score_table.item(row, column)
+        new_value = item.text()
+        student_name = self.ui.student_score_table.item(row, 0).text()
+        student_id = self.ui.student_score_table.item(row, 1).text()
+        one_course = self.ui.select_course_box2.currentText()
+        # row是行数，column是列数
+        # [row,1]是学生id  [row,0]学生姓名
+        # 首先需要检测添加的是成绩信息，也就是是数字类型，并且范围是0到100
+        if int(new_value) >= 0 and int(new_value) <= 100:
+            # 有两种情况，一种是添加值，一种是修改值，所以需要判断一下
+            temp_bool = sqls.select_score(login_ui.data_mysql, id=student_id, name=one_course)
+            if len(temp_bool) == 0:
+                # 说明没有值，也就是直接添加
+                sqls.add_score(login_ui.data_mysql,student_id,student_name,one_course,new_value)
+            else:
+                # 说明有值，那么就修改成绩，先删除，然后添加
+                sqls.delete_score(login_ui.data_mysql,student_id)
+                sqls.add_score(login_ui.data_mysql,student_id,student_name,one_course,new_value)
+            self.ui.label_word.setText(f"学生{student_name}，成绩修改成功")
+
+        else:
+            self.ui.label_word.setText("成绩输入不对，请重新输入")
+
+    def all_change(self):
+        # 显示
+        self.ui.stackedWidget.show()
+        self.ui.stackedWidget.setCurrentIndex(3)
+    def change_my_password(self):
+        self.ui.change_password_widget.show()
+
+    def change_my_password2(self):
+        # 得到数据
+        data = sqls.select_user(login_ui.data_mysql, name=login_ui.data_user["username"])
+        data_username = data[0][0]
+        data_password = data[0][1]
+        # 两次密码需要输入正确一致
+        if self.ui.new_password.text() == self.ui.new_password2.text():
+            # 输入密码不能和之前的密码一致
+            if data_password != self.ui.new_password.text():
+                if self.ui.new_password.text() != "":
+                    # 先删除在添加
+                    sqls.delete_user(login_ui.data_mysql, data_username)
+                    sqls.add_user(login_ui.data_mysql, data_username, self.ui.new_password.text())
+                    self.ui.label_word.setText("修改完成，注意：重新登录需要重新输入密码")
+                    # 退出登录，重新登录
+                    self.exit()
+                else:
+                    self.ui.label_word.setText("不能为空")
+            else:
+                self.ui.label_word.setText("旧密码和新密码一致，不能修改")
+
+        else:
+            self.ui.label_word.setText("你输入的密码前后不一致")
+
+
+
+    def exit(self):
+        self.ui.hide()
+        # 退出需要关闭堆栈的widget
+        self.hide()
+        login_ui.ui.show()
 
 
 class Sdept:
@@ -951,6 +1287,7 @@ sdept_ui = Sdept()
 register_ui = Register()
 student_ui = Student()
 root_ui = Root()
+teacher_ui = Teacher()
 login_ui.ui.show()
 sys.exit(app.exec_())
 
